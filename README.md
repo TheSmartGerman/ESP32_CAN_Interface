@@ -40,6 +40,9 @@ Unfortunatally no success to compile with Arduino IDE, therefore switch to [Plat
 * Changed from ArduinoJson from V5 to V6 (have be tested)
 
 Still no success to make :(
+Can't fix the struct error...
+![image](https://github.com/TheSmartGerman/ESP32_CAN_Interface/assets/9676982/91e1403a-da35-44e6-8f9f-ddd9552c2938)
+
 
 
 ### Connecting the hardware
