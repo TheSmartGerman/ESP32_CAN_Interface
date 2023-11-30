@@ -31,7 +31,16 @@ Which hardware components and software are needed and how to install them
 
 #### Software 
 
-* [Arduino IDE](https://www.arduino.cc/en/main/software) - The tool for flashing the ESP32
+* ~~[Arduino IDE](https://www.arduino.cc/en/main/software) - The tool for flashing the ESP32~~
+
+Unfortunatally no success to compile with Arduino IDE, therefore switch to [PlatformIO](https://platformio.org/) (VSCode)
+
+* Changed from CAN to TWAI (Two Wire Automotive Interface) function calls
+* added dependend libraries to platformio.ini
+* Changed from ArduinoJson from V5 to V6 (have be tested)
+
+Still no success to make :(
+
 
 ### Connecting the hardware
 
@@ -57,25 +66,25 @@ Connect the following Pins from the CAN-Transceiver with the specified Pins of t
 | CAN High | CANH            | Pin 7           |
 | CAN Low  | CANL            | Pin 2           |
 
-### Install and configure the Arduino IDE
+~~### Install and configure the Arduino IDE~~
 
-1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)
-2. Open Preferences in the Arduino IDE ( File -> Preferences )
-3. Include https://dl.espressif.com/dl/package_esp32_index.json under Additional Boards Manager URLs 
-4. Open the Board Manager ( Tools -> Board -> Boards Manager... )
-5. Search for esp32 and install the esp32 by Espressif Systems 
-6. Finish! The installation should be completed in a few seconds
+~~1. Download and install the [Arduino IDE](https://www.arduino.cc/en/main/software)~~
+~~2. Open Preferences in the Arduino IDE ( File -> Preferences )~~
+~~3. Include https://dl.espressif.com/dl/package_esp32_index.json under Additional Boards Manager URLs~~ 
+~~4. Open the Board Manager ( Tools -> Board -> Boards Manager... )~~
+~~5. Search for esp32 and install the esp32 by Espressif Systems~~
+~~6. Finish! The installation should be completed in a few seconds~~
 
 ### Upload the Project to the ESP32
 
-Connect the ESP32 via USB with a Computer and follow the instructions
+~~Connect the ESP32 via USB with a Computer and follow the instructions~~
 
-1. Open the Arduino IDE 
-2. Choose a ESP32 Board ( Tools -> Board -> ESP32 Arduino)
-3. Choose the used port ( Tools -> Port: -> COMx )
-4. Download the Project and open the "CAN_Interface.ino" ( File -> Open...)
-5. Press the Upload Button in the Arduino IDE 
-6. If everything went as expected a "Done uploading." message should appear
+~~1. Open the Arduino IDE~~
+~~2. Choose a ESP32 Board ( Tools -> Board -> ESP32 Arduino)~~
+~~3. Choose the used port ( Tools -> Port: -> COMx )~~
+~~4. Download the Project and open the "CAN_Interface.ino" ( File -> Open...)~~
+~~5. Press the Upload Button in the Arduino IDE~~
+~~6. If everything went as expected a "Done uploading." message should appear~~
 
 ## Usage
 

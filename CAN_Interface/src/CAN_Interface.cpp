@@ -1,13 +1,16 @@
+#include <Arduino.h>
+
 #include <WiFi.h>
 
 #include <WiFiUdp.h>
-#include <driver/can.h>
+// #include <driver/can.h> - old 
+#include <driver/twai.h>
 #include <driver/gpio.h>
-#include <FreeRTOS.h>
+// #include <FreeRTOS.h> - old 
+#include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <lwip/sockets.h>
 #include <lwip/netdb.h>
-#include <driver/can.h>
 #include <driver/gpio.h>
 /* ------------ Config ------------ */
 
@@ -18,7 +21,8 @@
 #include "can_driver_handler.h"
 IPAddress remote_ip;
 
-struct cannelloni_config_t config;
+// redifinischon error;
+extern struct cannelloni_config_t config;
 
 Nvm config_persistor;
 

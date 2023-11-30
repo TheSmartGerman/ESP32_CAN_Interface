@@ -20,6 +20,6 @@
 #define WEBSOCKET_PORT 81u
 
 
-extern cannelloni_config_t config;
+extern struct cannelloni_config_t config;
 
 #endif

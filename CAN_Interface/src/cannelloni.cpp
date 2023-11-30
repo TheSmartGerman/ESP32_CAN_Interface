@@ -1,5 +1,9 @@
-#include <FreeRTOS.h>
-#include <driver/can.h>
+#include <freertos/FreeRTOS.h>
+
+// #warning driver/can.h is deprecated, please use driver/twai.h instead
+// #include <driver/can.h>
+
+#include <driver/twai.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <lwip/sockets.h>
@@ -80,7 +84,7 @@ enum op_codes {
     NACK = 2
 };
 
-size_t cannelloni_build_packet(uint8_t *buffer, can_message_t *frames, int frame_count) 
+size_t cannelloni_build_packet(uint8_t *buffer, twai_message_t *frames, int frame_count) 
 {     //POSIX alternative ssize_t or Standard C size_t
     struct CannelloniDataPacket *snd_hdr;
     uint8_t *payload;
@@ -99,10 +103,10 @@ size_t cannelloni_build_packet(uint8_t *buffer, can_message_t *frames, int frame
 
     for (i = 0; i < frame_count; i++) {
         can_id = frames[i].identifier;
-        if (frames[i].flags & CAN_MSG_FLAG_EXTD) {    // extended frame format
+        if (frames[i].flags & TWAI_MSG_FLAG_EXTD) {    // extended frame format
             can_id |= CAN_EFF_FLAG;
         }
-        if (frames[i].flags & CAN_MSG_FLAG_RTR) {     // remote transmission request
+        if (frames[i].flags & TWAI_MSG_FLAG_RTR) {     // remote transmission request
             can_id |= CAN_RTR_FLAG;
         }
 
@@ -113,7 +117,7 @@ size_t cannelloni_build_packet(uint8_t *buffer, can_message_t *frames, int frame
         *payload = frames[i].data_length_code;
         payload += sizeof(frames[i].data_length_code);
 
-        if ((frames[i].flags & CAN_MSG_FLAG_RTR) == 0) {
+        if ((frames[i].flags & TWAI_MSG_FLAG_RTR) == 0) {
             memcpy(payload, frames[i].data, frames[i].data_length_code);
             payload += frames[i].data_length_code;
         }
@@ -124,8 +128,8 @@ size_t cannelloni_build_packet(uint8_t *buffer, can_message_t *frames, int frame
 
 void cannelloni_can_queue() {
     int packet_size;
-    can_message_t can_messages[20];
-    can_message_t can_message;
+    twai_message_t can_messages[20];
+    twai_message_t can_message;
     int queue_size;
     int sent;
     int i;
@@ -165,14 +169,14 @@ void cannelloni_can_queue() {
 }
 
 void cannelloni_can_main() {
-    can_message_t can_message;
+    twai_message_t can_message;
     esp_err_t error;
     int packet_size;
 
     while (true) {
       if(is_can_started())
       {
-        error = can_receive(&can_message, (1000 / portTICK_PERIOD_MS));
+        error = twai_receive(&can_message, (1000 / portTICK_PERIOD_MS));
         if (error == ESP_OK) {
             ESP_LOGI(ESP_TAG, "CAN Message received");
             xQueueSend(can_rx_queue_handle, (void *) &can_message, portMAX_DELAY);
@@ -191,7 +195,7 @@ int cannelloni_udp_onrecv(uint8_t *buffer, size_t len) {
     struct CannelloniDataPacket *rcv_hdr;
     const uint8_t* raw_data = buffer + CANNELLONI_DATA_PACKET_BASE_SIZE;
     int received_frames;
-    can_message_t can_frame;
+    twai_message_t can_frame;
     esp_err_t error;
 
     if (len < CANNELLONI_DATA_PACKET_BASE_SIZE) {
@@ -227,18 +231,18 @@ int cannelloni_udp_onrecv(uint8_t *buffer, size_t len) {
         can_id = ntohl(can_id);
         raw_data += sizeof(can_id);
 
-        can_frame.flags = CAN_MSG_FLAG_NONE;
+        can_frame.flags = TWAI_MSG_FLAG_NONE;
         if (can_id & CAN_ERR_FLAG) {
             // TODO: what?
         }
         if (can_id & CAN_EFF_FLAG) {
-            can_frame.flags |= CAN_MSG_FLAG_EXTD;
+            can_frame.flags |= TWAI_MSG_FLAG_EXTD;
         }
         if (can_id & CAN_RTR_FLAG) {
-            can_frame.flags |= CAN_MSG_FLAG_RTR;
+            can_frame.flags |= TWAI_MSG_FLAG_RTR;
         }
 
-        if (can_frame.flags & CAN_MSG_FLAG_EXTD) {
+        if (can_frame.flags & TWAI_MSG_FLAG_EXTD) {
             can_frame.identifier = can_id & CAN_EFF_MASK;
         }
         else {
@@ -248,7 +252,7 @@ int cannelloni_udp_onrecv(uint8_t *buffer, size_t len) {
         can_frame.data_length_code = *raw_data;
         raw_data += sizeof(can_frame.data_length_code);
 
-        if ((can_frame.flags & CAN_MSG_FLAG_RTR) == 0) {
+        if ((can_frame.flags & TWAI_MSG_FLAG_RTR) == 0) {
             if ((raw_data - buffer + can_frame.data_length_code) > len) {
                 ESP_LOGE(ESP_TAG, "Received an incomplete packet or the can header is corrupt");
                 return -1;
@@ -258,7 +262,7 @@ int cannelloni_udp_onrecv(uint8_t *buffer, size_t len) {
         }
 
         //ESP_LOGI(ESP_TAG, "CAN message received over UDP");
-        error = can_transmit(&can_frame, 0);
+        error = twai_transmit(&can_frame, 0);
         if (error == ESP_ERR_TIMEOUT) {
             Serial.println("Waiting for space in TX queue triggered a time out");
             ESP_LOGW(ESP_TAG, "Waiting for space in TX queue triggered a time out");
@@ -334,7 +338,7 @@ void create_udp_rx_queue() {
 }
 
 void create_can_rx_queue() {
-    can_rx_queue_handle = xQueueCreate(60, sizeof(can_message_t));
+    can_rx_queue_handle = xQueueCreate(60, sizeof(twai_message_t));
 }
 
 void cannelloni_start() {

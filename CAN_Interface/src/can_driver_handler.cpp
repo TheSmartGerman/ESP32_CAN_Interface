@@ -12,28 +12,28 @@ bool is_can_started() {
 void set_bitrate(cannelloni_config_t *config, int bitrate) {
     switch (bitrate) {
     case 1000:
-        config->bitrate = CAN_TIMING_CONFIG_1MBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_1MBITS();
         break;
     case 800:
-        config->bitrate = CAN_TIMING_CONFIG_800KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_800KBITS();
         break;
     case 500:
-        config->bitrate = CAN_TIMING_CONFIG_500KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_500KBITS();
         break;
     case 250:
-        config->bitrate = CAN_TIMING_CONFIG_250KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_250KBITS();
         break;
     case 125:
-        config->bitrate = CAN_TIMING_CONFIG_125KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_125KBITS();
         break;
     case 100:
-        config->bitrate = CAN_TIMING_CONFIG_100KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_100KBITS();
         break;
     case 50:
-        config->bitrate = CAN_TIMING_CONFIG_50KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_50KBITS();
         break;
     default:  // TODO: Invalid Input print error in log or Serial Port
-        config->bitrate = CAN_TIMING_CONFIG_500KBITS();
+        config->bitrate = TWAI_TIMING_CONFIG_500KBITS();
         break;
     }
 }
@@ -41,16 +41,16 @@ void set_bitrate(cannelloni_config_t *config, int bitrate) {
 void set_can_mode(cannelloni_config_t *config, int can_mode) {
     switch (can_mode) {
     case 0:
-        config->can_mode = CAN_MODE_NORMAL;
+        config->can_mode = TWAI_MODE_NORMAL;
         break;
     case 1:
-        config->can_mode = CAN_MODE_NO_ACK;
+        config->can_mode = TWAI_MODE_NO_ACK;
         break;
     case 2:
-        config->can_mode = CAN_MODE_LISTEN_ONLY;
+        config->can_mode = TWAI_MODE_LISTEN_ONLY;
         break;
     default:  // TODO: Invalid Input print error in log or Serial Port
-        config->can_mode = CAN_MODE_NORMAL;
+        config->can_mode = TWAI_MODE_NORMAL;
         break;
     }
 }
@@ -80,12 +80,12 @@ void settings_write(String key, cannelloni_config_t *config, void *value) {
     }
 }
 
-#define CAN_GENERAL_CONFIG(tx_io_num, rx_io_num, op_mode) { .mode = op_mode, .tx_io = tx_io_num, .rx_io = rx_io_num,   \
-                                                            .clkout_io = (gpio_num_t)CAN_IO_UNUSED, .bus_off_io = (gpio_num_t)CAN_IO_UNUSED,      \
+#define TWAI_GENERAL_CONFIG(tx_io_num, rx_io_num, op_mode) { .mode = op_mode, .tx_io = tx_io_num, .rx_io = rx_io_num,   \
+                                                            .clkout_io = (gpio_num_t)TWAI_IO_UNUSED, .bus_off_io = (gpio_num_t)TWAI_IO_UNUSED,      \
                                                             .tx_queue_len = 100, .rx_queue_len = 65,                   \
-                                                            .alerts_enabled = CAN_ALERT_NONE, .clkout_divider = 0,         }
+                                                            .alerts_enabled = TWAI_ALERT_NONE, .clkout_divider = 0,         }
                                    
-#define CAN_FILTER_CONFIG(accept_code, accept_mask) {.acceptance_code = accept_code, .acceptance_mask = accept_mask, .single_filter = true}
+#define TWAI_FILTER_CONFIG(accept_code, accept_mask) {.acceptance_code = accept_code, .acceptance_mask = accept_mask, .single_filter = true}
 
 uint32_t calc_acceptance_mask(uint32_t start_id, uint32_t end_id, bool is_extended) {
     uint32_t acceptance_mask = 0x0;
@@ -113,26 +113,26 @@ void setup_can_driver(cannelloni_config_t *config) {
   if (can_started)
   {
     can_started = false;  
-    error = can_stop();
+    error = twai_stop();
     delay(100);
-    error = can_driver_uninstall();
+    error = twai_driver_uninstall();
     delay(100);
   }
-  can_filter_config_t filter_config;
-  
-  can_general_config_t general_config = CAN_GENERAL_CONFIG(GPIO_NUM_5, GPIO_NUM_4, config->can_mode);
-  can_timing_config_t timing_config = config->bitrate;
+  twai_filter_config_t filter_config;
+
+  twai_general_config_t general_config = TWAI_GENERAL_CONFIG(GPIO_NUM_5, GPIO_NUM_4, config->can_mode);
+  twai_timing_config_t timing_config = config->bitrate;
 
   if (config->filter) {
     unsigned int acceptance_code = config->start_id;
     unsigned int acceptance_mask = calc_acceptance_mask(config->start_id, config->end_id, config->is_extended);
-    filter_config = CAN_FILTER_CONFIG(acceptance_code, acceptance_mask);
+    filter_config = TWAI_FILTER_CONFIG(acceptance_code, acceptance_mask);
   }
   else {
-    filter_config = CAN_FILTER_CONFIG_ACCEPT_ALL();
+    filter_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
   }
   
-  error = can_driver_install(&general_config, &timing_config, &filter_config);
+  error = twai_driver_install(&general_config, &timing_config, &filter_config);
 
   if (error == ESP_OK) {
     ESP_LOGI(TAG, "Diver install was successful");
@@ -145,7 +145,7 @@ void setup_can_driver(cannelloni_config_t *config) {
   }
 
   // start CAN driver
-  error = can_start();
+  error = twai_start();
 
   if (error == ESP_OK) {
     Serial.println("Driver start...");

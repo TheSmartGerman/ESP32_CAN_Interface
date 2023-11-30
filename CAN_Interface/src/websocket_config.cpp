@@ -1,4 +1,4 @@
-#include <FreeRTOS.h>
+#include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
@@ -10,6 +10,9 @@
 #include "nvm.h"
 
 extern Nvm config_persistor;
+
+// https://stackoverflow.com/questions/3266580/extern-struct-in-c
+// extern struct cannelloni_config_t config;
 
 /* ------------ Websocket ---------------*/
 #ifdef __USE_WEBSOCKET_CONFIG__
@@ -91,30 +94,32 @@ void http_stop() {
 
 
 void handle_recv_message(String message) {
-    StaticJsonBuffer<500> json_buffer;
+    StaticJsonDocument<500> json_buffer; /* update to version 6 - https://arduinojson.org/v6/doc/upgrade/ */ 
 
-    JsonObject &parsed = json_buffer.parseObject(message);
-    if (!parsed.success()) {
-        Serial.println("Json parsing failed");
+    auto error = deserializeJson(json_buffer, message);
+
+    if (error) {
+        Serial.print(F("deserializeJson() failed with code "));
+        Serial.println(error.c_str());
         return;
-    }
+}
 
-    int bitrate = parsed["bitrate"];
+    int bitrate = json_buffer["bitrate"];
     settings_write("bitrate", &config, &bitrate);
 
-    int can_mode = parsed["can_mode"];
+    int can_mode = json_buffer["can_mode"];
     settings_write("can_mode", &config, &can_mode);
 
-    int filter = parsed["filter"];
+    int filter = json_buffer["filter"];
     settings_write("filter", &config, &filter);
 
-    int is_extended = parsed["is_extended"];
+    int is_extended = json_buffer["is_extended"];
     settings_write("is_extended", &config, &is_extended);
 
-    int start_id = parsed["start_id"];
+    int start_id = json_buffer["start_id"];
     settings_write("start_id", &config, &start_id);
 
-    int end_id = parsed["end_id"];
+    int end_id = json_buffer["end_id"];
     settings_write("end_id", &config, &end_id);
 
     Serial.println();
